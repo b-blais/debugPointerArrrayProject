@@ -1,13 +1,13 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
-#include <vector>
+#include <string>
 
 using namespace std;
 
 //Constants
 int const COLUMNS = 6;
-int const ARRAY_SIZE = 10;
+int const ARRAY_SIZE = 100;
 double const STATE_TAX = .04;
 double const FED_TAX = .05;
 double const FICA = .05;
@@ -17,8 +17,7 @@ string const empInfoType[COLUMNS] = {"ID","Gross Pay","State Tax","Federal Tax",
 double employeeInfo[ARRAY_SIZE][COLUMNS]; //2D array to hold up to 10 employee records
 
 //function prototypes
-void openFile();
-void getSaveEmployeeRecords(double [][COLUMNS], int &);
+void getSavedEmployeeRecords(double [][COLUMNS], int &);
 void getEmployeeInfo(double [][COLUMNS], int &);
 int getID();
 double computePay(double [][COLUMNS], int);
@@ -26,20 +25,16 @@ double GetGrossPay();
 void displayEmployeeTable(double [][COLUMNS], int);
 void saveEmployeeInfo(double [][COLUMNS], int);
 void SetFormat(int precision, int width);
-void closeFile();
+int countLines();
 
 //global
 fstream employeeSavedRecords;
 
 int main() {
-    
-    
-    openFile();
     int records = 0;
     getEmployeeInfo(employeeInfo, records);
     displayEmployeeTable(employeeInfo, records);
     saveEmployeeInfo(employeeInfo, records);
-    closeFile();
 }
 
 void displayEmployeeTable(double employeeInfo[][COLUMNS], int records) {
@@ -60,13 +55,10 @@ void SetFormat(int precision, int width) {
     cout << fixed;
 }
 
-// To do: allow for multiple employees.
-
-//         save in file and read in file
-
 void getEmployeeInfo(double employee[][COLUMNS], int &records) {
-    getSaveEmployeeRecords();
-    int rowIndex = 0;
+    getSavedEmployeeRecords(employeeInfo, records);
+    cout << records << " records recovered from the saved file." << endl;
+    int rowIndex = records;
     do {
         employee[rowIndex][0] = getID();
         if (employee[rowIndex][0] > 0) {
@@ -76,11 +68,11 @@ void getEmployeeInfo(double employee[][COLUMNS], int &records) {
             employee[rowIndex][3] = grossPay * FED_TAX;
             employee[rowIndex][4] = grossPay * FICA;
             employee[rowIndex][5] = computePay(employeeInfo, rowIndex);
-            records++;
             rowIndex++;
         }
         else {
             cout << "Done entering new records.\n\n";
+            records += (rowIndex - records);
             break;
         }
     } while (rowIndex < ARRAY_SIZE);
@@ -112,19 +104,31 @@ double computePay(double info[][COLUMNS], int row)
     return grossPay - deductions;
 }
 
-void getSaveEmployeeRecords(double employee[][COLUMNS], int &records) {
-    while (employeeSavedRecords >> )
-    
-    for (int i = 0; i < records; i++) {
-        employeeSavedRecords << employeeInfo[i][0] << "\t";
-        for (int j = 1; j < COLUMNS; j++) {
-            employeeSavedRecords << employeeInfo[i][j] << "\t";
-        }
-        employeeSavedRecords << endl;
+void getSavedEmployeeRecords(double employee[][COLUMNS], int &records) {
+    employeeSavedRecords.open("employeeSavedRecords.txt");
+    if (employeeSavedRecords) {
+        cout << "employeeSavedRecords is open.\n";
     }
+    else {
+        cout << "The file was not found or could not be opened. \n";
+        cout << "Please check to see if the file is in the correct folder and rerun the program. Exiting ...\n";
+        exit(0);
+    }
+    if (employeeSavedRecords) {
+        cout << "Reading records ... ";
+    }
+    int savedRecordCount = countLines();
+    for (int i = 0; i < savedRecordCount; i++) {
+        for (int j = 0; j < COLUMNS; j++) {
+            employeeSavedRecords >> employee[i][j];
+        }
+        records++;
+    }
+    employeeSavedRecords.close();
 }
 
 void saveEmployeeInfo(double[][COLUMNS], int records) {
+    employeeSavedRecords.open("employeeSavedRecords.txt");
     for (int i = 0; i < records; i++) {
         employeeSavedRecords << employeeInfo[i][0] << "\t";
         for (int j = 1; j < COLUMNS; j++) {
@@ -132,22 +136,22 @@ void saveEmployeeInfo(double[][COLUMNS], int records) {
         }
         employeeSavedRecords << endl;
     }
-}
-
-void openFile() {
-    employeeSavedRecords.open("employeeSavedRecords.txt", ios::app);
-        if (employeeSavedRecords) {
-            cout << "file open.\n";
-        }
-        else {
-            cout << "The file was not found or could not be opened. \n";
-            cout << "Please check to see if the file is in the correct folder and rerun the program. Exiting ...\n";
-            exit(0);
-        }
-}
-
-void closeFile() {
-    cout << "Closing file ...";
     employeeSavedRecords.close();
-    cout << "File closed.";
+    cout << "Employee information saved.\n";
 }
+
+int countLines() {
+    int lineCount = 0;
+    string fileContents;
+    while (getline(employeeSavedRecords, fileContents)) {
+        if (fileContents == "") {
+            cout << "This is an empty file or it is unreadable.\n";
+            return 0;
+        }
+        lineCount += 1;
+    }
+    cout << "There are " << lineCount << " lines in this file.\n";
+    employeeSavedRecords.clear();
+    employeeSavedRecords.seekg(0, ios::beg);
+    return lineCount;
+ }
