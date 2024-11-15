@@ -8,7 +8,6 @@ using namespace std;
 
 //Constants
 int const COLUMNS = 6;
-int const ARRAY_SIZE = 100;
 double const STATE_TAX = .04;
 double const FED_TAX = .05;
 double const FICA = .05;
