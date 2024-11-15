@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <fstream>
 #include <string>
+#include <vector>
 
 using namespace std;
 
@@ -14,16 +15,18 @@ double const FICA = .05;
 string const empInfoType[COLUMNS] = {"ID","Gross Pay","State Tax","Federal Tax","FICA","Net Pay" };
 
 //arrays
-double employeeInfo[ARRAY_SIZE][COLUMNS]; //2D array to hold up to 10 employee records
+vector<vector<double>> employeeInfo; //2D vector
+
+//pointers
+auto* empInfo = &employeeInfo;
 
 //function prototypes
-void getSavedEmployeeRecords(double [][COLUMNS], int &);
-void getEmployeeInfo(double [][COLUMNS], int &);
+void getSavedEmployeeRecords(vector<vector<double>> &, int &);
+void getEmployeeInfo(vector<vector<double>> &, int &);
 int getID();
-double computePay(double [][COLUMNS], int);
 double GetGrossPay();
-void displayEmployeeTable(double [][COLUMNS], int);
-void saveEmployeeInfo(double [][COLUMNS], int);
+void displayEmployeeTable(vector<vector<double>>&, int);
+void saveEmployeeInfo(vector<vector<double>>&, int);
 void SetFormat(int precision, int width);
 int countLines();
 
@@ -37,7 +40,7 @@ int main() {
     saveEmployeeInfo(employeeInfo, records);
 }
 
-void displayEmployeeTable(double employeeInfo[][COLUMNS], int records) {
+void displayEmployeeTable(vector<vector<double>>& employeeInfo, int records) {
     SetFormat(2, 3);
     for (int i = 0; i < records; i++) {
         cout << left << "ID " << left << static_cast<int>(employeeInfo[i][0]) << "\n";
@@ -55,27 +58,26 @@ void SetFormat(int precision, int width) {
     cout << fixed;
 }
 
-void getEmployeeInfo(double employee[][COLUMNS], int &records) {
+void getEmployeeInfo(vector<vector<double>> &employeeInfo, int &records) {
     getSavedEmployeeRecords(employeeInfo, records);
-    cout << records << " records recovered from the saved file." << endl;
-    int rowIndex = records;
+    cout << (employeeInfo.size()) << " records recovered from the saved file." << endl;
+    vector<double> row;
     do {
-        employee[rowIndex][0] = getID();
-        if (employee[rowIndex][0] > 0) {
-            double grossPay = GetGrossPay();
-            employee[rowIndex][1] = grossPay;
-            employee[rowIndex][2] = grossPay * STATE_TAX;
-            employee[rowIndex][3] = grossPay * FED_TAX;
-            employee[rowIndex][4] = grossPay * FICA;
-            employee[rowIndex][5] = computePay(employeeInfo, rowIndex);
-            rowIndex++;
-        }
-        else {
-            cout << "Done entering new records.\n\n";
-            records += (rowIndex - records);
+        row.push_back(getID());
+        if (row[0] == 0) {
             break;
         }
-    } while (rowIndex < ARRAY_SIZE);
+        double grossPay = GetGrossPay();
+        row.push_back(grossPay);
+        row.push_back(grossPay * STATE_TAX);
+        row.push_back(grossPay * FED_TAX);
+        row.push_back(grossPay * FICA);
+        row.push_back(row[1] - (row[2] + row[3] + row[4]));
+        employeeInfo.push_back(row);
+        row.clear();
+    } while (row.empty());
+    records = static_cast<int>(employeeInfo.size());
+    cout << "Done entering new records.\n\n";
 }
 
 int getID() {
@@ -92,19 +94,7 @@ double GetGrossPay() {
     return gp;
 }
 
-double computePay(double info[][COLUMNS], int row)
-
-{
-    double grossPay = info[row][1];
-    double deductions = 0.0;
-    for (int i = 2; i < 5; i++)
-    {
-        deductions += info[row][i];
-    }
-    return grossPay - deductions;
-}
-
-void getSavedEmployeeRecords(double employee[][COLUMNS], int &records) {
+void getSavedEmployeeRecords(vector<vector<double>>& employeeInfo, int &records) {
     employeeSavedRecords.open("employeeSavedRecords.txt");
     if (employeeSavedRecords) {
         cout << "employeeSavedRecords is open.\n";
@@ -118,16 +108,21 @@ void getSavedEmployeeRecords(double employee[][COLUMNS], int &records) {
         cout << "Reading records ... ";
     }
     int savedRecordCount = countLines();
+    vector<double> row;
+    double tempInput;
     for (int i = 0; i < savedRecordCount; i++) {
         for (int j = 0; j < COLUMNS; j++) {
-            employeeSavedRecords >> employee[i][j];
+            employeeSavedRecords >> tempInput;
+            row.push_back(tempInput);
         }
+        employeeInfo.push_back(row);
+        row.clear();
         records++;
     }
     employeeSavedRecords.close();
 }
 
-void saveEmployeeInfo(double[][COLUMNS], int records) {
+void saveEmployeeInfo(vector<vector<double>>& employeeInfo, int records) {
     employeeSavedRecords.open("employeeSavedRecords.txt");
     for (int i = 0; i < records; i++) {
         employeeSavedRecords << employeeInfo[i][0] << "\t";
