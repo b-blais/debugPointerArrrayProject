@@ -14,7 +14,7 @@ double const FICA = .05;
 string const empInfoType[COLUMNS] = {"ID","Gross Pay","State Tax","Federal Tax","FICA","Net Pay" };
 
 //arrays
-double employeeInfo[ARRAY_SIZE][COLUMNS]; //2D array to hold up to 10 employee records
+double employeeInfo[ARRAY_SIZE][COLUMNS]; //2D array to hold up to 100 employee records
 
 //function prototypes
 void getSavedEmployeeRecords(double [][COLUMNS], int &);
