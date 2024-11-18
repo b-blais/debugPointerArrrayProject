@@ -7,43 +7,68 @@ using namespace std;
 
 //Constants
 int const COLUMNS = 6;
-int const ARRAY_SIZE = 100;
 double const STATE_TAX = .04;
 double const FED_TAX = .05;
 double const FICA = .05;
 string const empInfoType[COLUMNS] = {"ID","Gross Pay","State Tax","Federal Tax","FICA","Net Pay" };
 
+//Pointers
+double** ptrArray = nullptr;
+
 //arrays
-double employeeInfo[ARRAY_SIZE][COLUMNS]; //2D array to hold up to 100 employee records
+double employeeInfo[COLUMNS]; //1D array to hold up to 1 employee record
 
 //function prototypes
-void getSavedEmployeeRecords(double [][COLUMNS], int &);
-void getEmployeeInfo(double [][COLUMNS], int &);
+void createDynamicArray(int, int);
+void getSavedEmployeeRecords(int, int &);
+void getEmployeeInfo(int, int &);
 int getID();
-double computePay(double [][COLUMNS], int);
+double computePay(int);
 double GetGrossPay();
-void displayEmployeeTable(double [][COLUMNS], int);
-void saveEmployeeInfo(double [][COLUMNS], int);
+void displayEmployeeTable(int);
+void saveEmployeeInfo(int);
 void SetFormat(int precision, int width);
 int countLines();
+void deleteDynamicMemoryAllocations(int &);
 
 //global
 fstream employeeSavedRecords;
 
 int main() {
+        
     int records = 0;
-    getEmployeeInfo(employeeInfo, records);
-    displayEmployeeTable(employeeInfo, records);
-    saveEmployeeInfo(employeeInfo, records);
+    int newRecords;
+    cout << "How many records are you adding today?\t";
+    cin >> newRecords;
+    getEmployeeInfo(newRecords, records);
+    displayEmployeeTable(records);
+    saveEmployeeInfo(records);
+    deleteDynamicMemoryAllocations(records);
 }
 
-void displayEmployeeTable(double employeeInfo[][COLUMNS], int records) {
+void createDynamicArray(int newEmployees, int recordsToRecover) {
+    // array of pointers to what will be records for "employeeNumber" employees
+    ptrArray = new double* [(newEmployees + recordsToRecover)];
+    // connect the array of pointers to the fixed array of columns.
+    for (int i = 0; i < (newEmployees + recordsToRecover); i++) {
+        ptrArray[i] = new double[COLUMNS];
+    }
+}
+
+void deleteDynamicMemoryAllocations(int &records) {
+    for (int i = 0; i < records; i++) {
+        delete[] ptrArray[i];
+     }
+    delete[] ptrArray;
+}
+
+void displayEmployeeTable(int records) {
     SetFormat(2, 3);
     for (int i = 0; i < records; i++) {
-        cout << left << "ID " << left << static_cast<int>(employeeInfo[i][0]) << "\n";
+        cout << left << "ID " << left << static_cast<int>(ptrArray[i][0]) << "\n";
         for (int j = 1; j < COLUMNS; j++) {
             SetFormat(2, 10);
-            cout << left << empInfoType[j] << ":\t$" << left << employeeInfo[i][j] << "\n";
+            cout << left << empInfoType[j] << ":\t$" << left << ptrArray[i][j] << "\n";
         }
         cout << endl;
     }
@@ -55,27 +80,22 @@ void SetFormat(int precision, int width) {
     cout << fixed;
 }
 
-void getEmployeeInfo(double employee[][COLUMNS], int &records) {
-    getSavedEmployeeRecords(employeeInfo, records);
+void getEmployeeInfo(int newRecords, int &records) {
+    getSavedEmployeeRecords(newRecords, records);
     cout << records << " records recovered from the saved file." << endl;
     int rowIndex = records;
     do {
-        employee[rowIndex][0] = getID();
-        if (employee[rowIndex][0] > 0) {
-            double grossPay = GetGrossPay();
-            employee[rowIndex][1] = grossPay;
-            employee[rowIndex][2] = grossPay * STATE_TAX;
-            employee[rowIndex][3] = grossPay * FED_TAX;
-            employee[rowIndex][4] = grossPay * FICA;
-            employee[rowIndex][5] = computePay(employeeInfo, rowIndex);
-            rowIndex++;
-        }
-        else {
-            cout << "Done entering new records.\n\n";
-            records += (rowIndex - records);
-            break;
-        }
-    } while (rowIndex < ARRAY_SIZE);
+        ptrArray[rowIndex][0] = getID();
+        double grossPay = GetGrossPay();
+        ptrArray[rowIndex][1] = grossPay;
+        ptrArray[rowIndex][2] = grossPay * STATE_TAX;
+        ptrArray[rowIndex][3] = grossPay * FED_TAX;
+        ptrArray[rowIndex][4] = grossPay * FICA;
+        ptrArray[rowIndex][5] = computePay(rowIndex);
+        rowIndex++;
+    } while (rowIndex < (records+newRecords));
+        cout << "Done entering new records ... " << newRecords << " records added.\n\n";
+        records += newRecords;
 }
 
 int getID() {
@@ -92,19 +112,19 @@ double GetGrossPay() {
     return gp;
 }
 
-double computePay(double info[][COLUMNS], int row)
+double computePay(int row)
 
 {
-    double grossPay = info[row][1];
+    double grossPay = ptrArray[row][1];
     double deductions = 0.0;
     for (int i = 2; i < 5; i++)
     {
-        deductions += info[row][i];
+        deductions += ptrArray[row][i];
     }
     return grossPay - deductions;
 }
 
-void getSavedEmployeeRecords(double employee[][COLUMNS], int &records) {
+void getSavedEmployeeRecords(int newRecords, int &records) {
     employeeSavedRecords.open("employeeSavedRecords.txt");
     if (employeeSavedRecords) {
         cout << "employeeSavedRecords is open.\n";
@@ -117,22 +137,23 @@ void getSavedEmployeeRecords(double employee[][COLUMNS], int &records) {
     if (employeeSavedRecords) {
         cout << "Reading records ... ";
     }
-    int savedRecordCount = countLines();
-    for (int i = 0; i < savedRecordCount; i++) {
+    int recordsToRecover = countLines();
+    createDynamicArray(newRecords, recordsToRecover);
+    for (int i = 0; i < recordsToRecover; i++) {
         for (int j = 0; j < COLUMNS; j++) {
-            employeeSavedRecords >> employee[i][j];
+            employeeSavedRecords >> ptrArray[i][j];
         }
         records++;
     }
     employeeSavedRecords.close();
 }
 
-void saveEmployeeInfo(double[][COLUMNS], int records) {
+void saveEmployeeInfo(int records) {
     employeeSavedRecords.open("employeeSavedRecords.txt");
     for (int i = 0; i < records; i++) {
-        employeeSavedRecords << employeeInfo[i][0] << "\t";
+        employeeSavedRecords << ptrArray[i][0] << "\t";
         for (int j = 1; j < COLUMNS; j++) {
-            employeeSavedRecords << employeeInfo[i][j] << "\t";
+            employeeSavedRecords << ptrArray[i][j] << "\t";
         }
         employeeSavedRecords << endl;
     }
