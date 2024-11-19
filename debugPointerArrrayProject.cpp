@@ -91,7 +91,7 @@ void getEmployeeInfo(double employee[][COLUMNS], int &records) {
 
 int getID() {
     int id;
-    cout << "Please Enter the Employee ID: ";
+    cout << "Please Enter the Employee ID; enter 0 if there are no more records: ";
     cin >> id;
     return id;
 }
