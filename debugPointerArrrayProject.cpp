@@ -16,9 +16,6 @@ string const empInfoType[COLUMNS] = {"ID","Gross Pay","State Tax","Federal Tax",
 //arrays
 vector<vector<double>> employeeInfo; //2D vector
 
-//pointers
-auto* empInfo = &employeeInfo;
-
 //function prototypes
 void getSavedEmployeeRecords(vector<vector<double>> &, int &);
 void getEmployeeInfo(vector<vector<double>> &, int &);
@@ -81,7 +78,7 @@ void getEmployeeInfo(vector<vector<double>> &employeeInfo, int &records) {
 
 int getID() {
     int id;
-    cout << "Please Enter the Employee ID: ";
+    cout << "Please Enter the Employee ID; enter 0 if there are no more records: ";
     cin >> id;
     return id;
 }
