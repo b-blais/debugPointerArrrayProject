@@ -22,4 +22,9 @@
   <ItemGroup>
     <Text Include="employeeSavedRecords.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md">
+      <Filter>Source Files</Filter>
+    </None>
+  </ItemGroup>
 </Project>
