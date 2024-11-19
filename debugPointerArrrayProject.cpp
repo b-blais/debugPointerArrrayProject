@@ -15,9 +15,6 @@ string const empInfoType[COLUMNS] = {"ID","Gross Pay","State Tax","Federal Tax",
 //Pointers
 double** ptrArray = nullptr;
 
-//arrays
-double employeeInfo[COLUMNS]; //1D array to hold up to 1 employee record
-
 //function prototypes
 void createDynamicArray(int, int);
 void getSavedEmployeeRecords(int, int &);
@@ -40,7 +37,13 @@ int main() {
     int newRecords;
     cout << "How many records are you adding today?\t";
     cin >> newRecords;
-    getEmployeeInfo(newRecords, records);
+    if (newRecords > 0) {
+        getEmployeeInfo(newRecords, records);
+    }
+    else {
+        getSavedEmployeeRecords(newRecords, records);
+        cout << records << " records recovered from the saved file." << endl;
+    }
     displayEmployeeTable(records);
     saveEmployeeInfo(records);
     deleteDynamicMemoryAllocations(records);
