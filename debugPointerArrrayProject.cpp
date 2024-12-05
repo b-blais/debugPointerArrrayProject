@@ -20,14 +20,17 @@ and the number of records saved in the text file.
 using namespace std;
 
 //Constants
-int const COLUMNS = 6;
+int const COLUMNS = 6; // This will be the size of an array to hold a single employee record
 double const STATE_TAX = .04;
 double const FED_TAX = .05;
 double const FICA = .05;
-string const empInfoType[COLUMNS] = {"ID","Gross Pay","State Tax","Federal Tax","FICA","Net Pay" };
+string const empInfoType[COLUMNS] = {"ID","Gross Pay","State Tax","Federal Tax","FICA","Net Pay" }; // labels for printing out the info
 
 //Pointers
-double** ptrArray = nullptr;
+double** ptrArray = nullptr; // This will end up pointing to an array which will hold multiple lines of data (each an array)
+
+//arrays
+double employeeInfo[COLUMNS]; //1D array to hold up to 1 employee record
 
 //function prototypes
 void createDynamicArray(int, int);
@@ -52,15 +55,16 @@ int main() {
     cout << "How many records are you adding today?\t";
     cin >> newRecords;
     if (newRecords > 0) {
-        getEmployeeInfo(newRecords, records);
+        getEmployeeInfo(newRecords, records); //open a file and recover records saved there
     }
     else {
         getSavedEmployeeRecords(newRecords, records);
         cout << records << " records recovered from the saved file." << endl;
     }
-    displayEmployeeTable(records);
-    saveEmployeeInfo(records);
-    deleteDynamicMemoryAllocations(records);
+    
+    displayEmployeeTable(records); //display the final results of saved and new records
+    saveEmployeeInfo(records); //save all the records that were displayed
+    deleteDynamicMemoryAllocations(records); //clean up dynamic memory allocation
 }
 
 void createDynamicArray(int newEmployees, int recordsToRecover) {
@@ -68,6 +72,7 @@ void createDynamicArray(int newEmployees, int recordsToRecover) {
     ptrArray = new double* [(newEmployees + recordsToRecover)];
     // connect the array of pointers to the fixed array of columns.
     for (int i = 0; i < (newEmployees + recordsToRecover); i++) {
+        // each of the arrays created below will hold one employee record
         ptrArray[i] = new double[COLUMNS];
     }
 }
