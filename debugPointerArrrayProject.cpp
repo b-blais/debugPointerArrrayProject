@@ -29,9 +29,6 @@ string const empInfoType[COLUMNS] = {"ID","Gross Pay","State Tax","Federal Tax",
 //Pointers
 double** ptrArray = nullptr; // This will end up pointing to an array which will hold multiple lines of data (each an array)
 
-//arrays
-double employeeInfo[COLUMNS]; //1D array to hold up to 1 employee record
-
 //function prototypes
 void createDynamicArray(int, int);
 void getSavedEmployeeRecords(int, int &);
